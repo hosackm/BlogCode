@@ -31,9 +31,9 @@ void ofApp::draw(){
      * using the distance from the center
      * we calculated earlier
      */
-    ofPoint top  = ofPoint(0, -tri_hheight);
-    ofPoint left = ofPoint(-tri_hheight, tri_hheight);
-    ofPoint right = ofPoint(tri_hheight, tri_hheight);
+    ofPoint A = ofPoint(-tri_hheight, tri_hheight);
+    ofPoint B = ofPoint(tri_hheight, tri_hheight);
+    ofPoint C  = ofPoint(0, -tri_hheight);
 
     /* Store the coordinate system and styling
      * we had before this point
@@ -51,54 +51,44 @@ void ofApp::draw(){
         
         /* Set the triangle to the first color in our array and draw it */
         ofSetHexColor(colors[0]);
-        ofTriangle(left, top, right);
+        ofTriangle(A, C, B);
     
         /* Translate to top of triangle for parallelograms */
         ofPushMatrix();
         {
-            /* Draw respective to the top vertex of the triangle */
-            ofTranslate(top.x, top.y);
-        
-            /* The height of the parallelogram is the same for each parallelogram */
-            const float par_h = tri_hheight * 2.;
-        
-            /* The x values will be updated each time
-             * we draw them so define them outside the loop
-             *(x1,y1)------(x2,y2)
-             * \             \
-             *  \             \
-             *   \--par_width--\
-             *    \             \
-             *     \             \
-             *     (x3,y3)-------(x4,y4)  */
-            float x1, x2, x3, x4;
-        
-            /* Start at -20.0 so that our first shift makes x1 = 0.0 */
-            x1 = 0;
-            x2 = par_width;
-
-            /* x3 is at the right vertex so shift it half the triangle width */
-            x3 = tri_hheight;
-            x4 = x3 + par_width;
-        
-            for(int i = 0; i < NUM_TYCHO_COLORS - 1; ++i)
+            /*(top.x, top.y)        (top.x + 20, top.y)
+             * ______________________
+             * \                     \
+             *  \                     \
+             *   \                     \
+             *    \------par_width------\
+             *     \                     \
+             *      \                     \
+             *       \_____________________\
+             *(bottom.x, bottom.y)         (bottom.x + 20, bottom.y)
+             */
+            ofPoint top = ofPoint(B);
+            ofPoint bottom = ofPoint(C);
+            
+            for(int i = 1; i < NUM_TYCHO_COLORS; ++i)
             {
-                /* Use the next Tycho color */
-                ofSetHexColor(colors[i+1]);
-
-                /* Draw the parallelogram using the vertices we calculated */
+                /* Use next color */
+                ofSetHexColor(colors[i]);
+                
+                /* begin parallelogram */
                 ofBeginShape();
-                    ofVertex(x1, 0.);
-                    ofVertex(x2, 0.);
-                    ofVertex(x4, par_h);
-                    ofVertex(x3, par_h);
+                
+                ofVertex(top.x, top.y); /* top left */
+                ofVertex(top.x + par_width, top.y); /* top right */
+                ofVertex(bottom.x + par_width, bottom.y); /* bottom right */
+                ofVertex(bottom.x, bottom.y); /* bottom left */
+                
+                /* end parallelogram */
                 ofEndShape();
                 
-                /* Shift all the x vertices by our parallelogram width */
-                x1 += par_width;
-                x2 += par_width;
-                x3 += par_width;
-                x4 += par_width;
+                /* Shift over par_width */
+                top.x += par_width;
+                bottom.x += par_width;
             }
         }
         /* Pop our top triangle translation */
@@ -153,6 +143,7 @@ void ofApp::draw(){
     /* Pop the dots translation and style */
     ofPopMatrix();
     ofPopStyle();
+    
 }
 
 //--------------------------------------------------------------
