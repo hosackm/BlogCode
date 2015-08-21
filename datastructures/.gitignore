@@ -1,0 +1,9 @@
+#Xcode
+xcuserdata
+*.xcodeproj
+DS_STORE
+
+#Python
+venv
+*.pyc
+__pycache__
