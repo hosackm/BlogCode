@@ -7,3 +7,9 @@ xcuserdata
 venv
 *.pyc
 __pycache__
+
+#binaries
+*.out
+*.exe
+*.a
+
