@@ -5,7 +5,14 @@ extern "C" {
 typedef int elem;
 typedef struct node_s *btree;
 
-/* Create a tree */
+/* Create a tree
+ *
+ * Returns
+ * =======
+ *  NULL - please don't try to dereference this
+ *         it only exists to conform with the usual
+ *         function signature of other data structures
+ */
 btree btree_create();
 
 /* Destroy a tree */
