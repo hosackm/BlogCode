@@ -1,4 +1,6 @@
 from __future__ import print_function
+import string
+import random
 
 
 class Node(object):
@@ -33,9 +35,9 @@ class Tree(object):
         if self.root is None:
             self.root = Node(val)
         else:
-            self.addToNode(val, self.root)
+            self._add(val, self.root)
 
-    def addToNode(self, val, node):
+    def _add(self, val, node):
         """
         Recursively add a node to a tree.
 
@@ -46,12 +48,25 @@ class Tree(object):
             if node.left is None:
                 node.left = Node(val)
             else:
-                self.addToNode(val, node.left)
+                self._add(val, node.left)
         else:
             if node.right is None:
                 node.right = Node(val)
             else:
-                self.addToNode(val, node.right)
+                self._add(val, node.right)
+
+    def maxHeight(self):
+        if self.root is None:
+            return 0
+        else:
+            return self._maxHeight(self.root)
+
+    def _maxHeight(self, node):
+        if node is None:
+            return 0
+        lheight = self._maxHeight(node.left)
+        rheight = self._maxHeight(node.right)
+        return lheight + 1 if lheight > rheight else rheight + 1
 
     def __str__(self):
         if self.root is None:
@@ -59,8 +74,38 @@ class Tree(object):
         return str(self.root)
 
 
+def getHeight(t):
+    return len(t)
+
+
+def printTree(t):
+    """
+    List based solution for testing a printing idead I had
+    """
+
+    h = getHeight(t)
+    width = (2**(h+1)) - 1
+    print("Width: {}".format(width))
+
+    for level, row in enumerate(t, 1):
+        try:
+            nodewidth, space = divmod(width, 2**level)
+        except ZeroDivisionError:
+            nodewidth, space = width, 0
+        finally:
+            space = " " if space else ""
+        print("".join([s.center(nodewidth) + space for s in row]))
+
+
+def main2():
+    tree = [[random.choice(string.ascii_lowercase)
+             for i in range(2**j)] for j in range(5)]
+    printTree(tree)
+
+
 def main():
     t = Tree()
+    print("Pre-Height: {}".format(t.maxHeight()))
     t.add(8)
     t.add(6)
     t.add(9)
@@ -69,6 +114,7 @@ def main():
     t.add(3)
     t.add(1)
     print(t)
+    print("Post-Height: {}".format(t.maxHeight()))
 
 if __name__ == "__main__":
-    main()
+    main2()
