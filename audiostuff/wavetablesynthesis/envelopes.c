@@ -72,10 +72,31 @@ static double envelope_gain_lin(envelope_s env, synth_time_t birth)
      * 1. Find State based on time
      * 2. Go to the state section and calculate gain
      */
-    const unsigned int state = envelope_get_state(env, birth, NULL); /* ADSR state */
-    (void)state;
+    double x; /* x value in seconds inside state.
+               ie: ATTACK - 0.5: 500ms into attack transient */
+    const unsigned int state = envelope_get_state(env, birth, &x);
+    double amp;
     
-    return 0.0;
+    switch (state) {
+        case ENVELOPE_STATE_ATTACK:
+            amp = x / env.attack_t;
+            break;
+        case ENVELOPE_STATE_DECAY:
+            amp = 1.0 - (1.0 - env.sustain_g) * (x / env.decay_t);
+            break;
+        case ENVELOPE_STATE_SUSTAIN:
+            amp = env.sustain_g;
+            break;
+        case ENVELOPE_STATE_RELEASE:
+            amp = env.sustain_g - (x / env.attack_t);
+            break;
+        case ENVELOPE_STATE_DEAD:
+        default:
+            amp = 0.0f;
+            break;
+    }
+    
+    return amp;
 }
 static double envelope_gain_exp(envelope_s env, synth_time_t birth)
 {
@@ -88,18 +109,19 @@ static double envelope_gain_exp(envelope_s env, synth_time_t birth)
     const unsigned int state = envelope_get_state(env, birth, &x);
     double amp;
 
+    /* Copied from Linear Version.  Must modify */
     switch (state) {
         case ENVELOPE_STATE_ATTACK:
-            
+            amp = x / env.attack_t;
             break;
         case ENVELOPE_STATE_DECAY:
-            
+            amp = 1.0 - (1.0 - env.sustain_g) * (x / env.decay_t);
             break;
         case ENVELOPE_STATE_SUSTAIN:
-            
+            amp = env.sustain_g;
             break;
         case ENVELOPE_STATE_RELEASE:
-            
+            amp = env.sustain_g - (x / env.attack_t);
             break;
         case ENVELOPE_STATE_DEAD:
         default:
