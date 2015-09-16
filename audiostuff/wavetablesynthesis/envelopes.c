@@ -40,12 +40,11 @@
 };*/
 
 /* Private Helper Functions */
-static double envelope_gain_lin(envelope_s env, struct timeval birth);
-static double envelope_gain_exp(envelope_s env, struct timeval birth);
-//static unsigned int envelope_get_state(envelope_s env, struct timeval birth);
+static double envelope_gain_lin(envelope_s env, synth_time_t birth);
+static double envelope_gain_exp(envelope_s env, synth_time_t birth);
 
 /* Public envelope function */
-double envelope_gain(envelope_s env, struct timeval birth)
+double envelope_gain(envelope_s env, synth_time_t birth)
 {
     double g;
     switch (env.type) {
@@ -67,58 +66,95 @@ double envelope_gain(envelope_s env, struct timeval birth)
     return g > 0.0;
 }
 
-static double envelope_gain_lin(envelope_s env, struct timeval birth)
+static double envelope_gain_lin(envelope_s env, synth_time_t birth)
 {
     /*
      * 1. Find State based on time
      * 2. Go to the state section and calculate gain
      */
-    const unsigned int state = envelope_get_state(env, birth); /* ADSR state */
+    const unsigned int state = envelope_get_state(env, birth, NULL); /* ADSR state */
     (void)state;
     
     return 0.0;
 }
-static double envelope_gain_exp(envelope_s env, struct timeval birth)
+static double envelope_gain_exp(envelope_s env, synth_time_t birth)
 {
     /*
      * 1. Find State based on time
      * 2. Go to the state section and calculate gain
      */
-    
+    double x; /* x value in seconds inside state.
+                 ie: ATTACK - 0.5: 500ms into attack transient */
+    const unsigned int state = envelope_get_state(env, birth, &x);
+    double amp;
 
-    return 0.0;
+    switch (state) {
+        case ENVELOPE_STATE_ATTACK:
+            
+            break;
+        case ENVELOPE_STATE_DECAY:
+            
+            break;
+        case ENVELOPE_STATE_SUSTAIN:
+            
+            break;
+        case ENVELOPE_STATE_RELEASE:
+            
+            break;
+        case ENVELOPE_STATE_DEAD:
+        default:
+            amp = 0.0f;
+            break;
+    }
+
+    return amp;
 }
 
-//static unsigned int envelope_get_state(envelope_s env, struct timeval birth)
-unsigned int envelope_get_state(envelope_s env, struct timeval birth)
+//static unsigned int envelope_get_state(envelope_s env, synth_time_t birth)
+unsigned int envelope_get_state(envelope_s env, synth_time_t birth, double *overlap)
 {
     /* Calculate the time since this note was
      * created and return ADSR state that is should be in
      */
-    struct timeval now;
+    synth_time_t now;
     time_now(&now);
     double alive = elapsed_time(birth, now);
     double sum = 0.0; /* accumulate time over ADSR states to create window */
     
     if (alive > 0 && alive < env.attack_t) {
+        if (overlap) {
+            *overlap = alive;
+        }
         return ENVELOPE_STATE_ATTACK;
     }
 
     sum += env.attack_t;
     if (alive > sum && alive < (env.decay_t + sum)) {
+        if (overlap) {
+            *overlap = alive - sum;
+        }
         return ENVELOPE_STATE_DECAY;
     }
 
     sum += env.decay_t;
     if (alive > sum && alive < (SUSTAIN_LENGTH + sum)) {
+        if (overlap) {
+            *overlap = alive - sum;
+        }
         return ENVELOPE_STATE_SUSTAIN;
     }
 
     sum += SUSTAIN_LENGTH;
     if (alive > sum && alive < (env.release_t + sum)) {
+        if (overlap) {
+            *overlap = alive - sum;
+        }
         return ENVELOPE_STATE_RELEASE;
     }
 
+    if (overlap) {
+        *overlap = 0.0f;
+    }
     return ENVELOPE_STATE_DEAD;
 }
 

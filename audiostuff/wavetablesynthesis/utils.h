@@ -9,6 +9,7 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
+#include "types.h"
 #include <time.h>
 #include <sys/time.h>
 
@@ -18,8 +19,12 @@
 
 /* TIME BASED UTILS
  * ================ */
-void time_now(struct timeval *t);
+/*void time_now(struct timeval *t);
 double elapsed_time_ms(struct timeval start, struct timeval end);
-double elapsed_time(struct timeval start, struct timeval end);
+double elapsed_time(struct timeval start, struct timeval end);*/
+
+void time_now(synth_time_t *t);
+double elapsed_time_ms(synth_time_t start, synth_time_t end);
+double elapsed_time(synth_time_t start, synth_time_t end);
 
 #endif /* __UTILS_H__ */

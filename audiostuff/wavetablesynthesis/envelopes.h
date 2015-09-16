@@ -9,6 +9,8 @@
 #ifndef __ENVELOPES_H__
 #define __ENVELOPES_H__
 
+#include "types.h"
+
 typedef struct {
     double attack_t;    /* attack time (5ms - 15sec) */
     double decay_t;     /* decay time (5ms - 15sec)  */
@@ -43,8 +45,8 @@ enum
     ENVELOPE_TYPE_EXPONENTIAL
 };
 
-double envelope_gain(envelope_s env, struct timeval birth);
-unsigned int envelope_get_state(envelope_s env, struct timeval birth);
+double envelope_gain(envelope_s env, synth_time_t birth);
+unsigned int envelope_get_state(envelope_s env, synth_time_t birth, double *overlap);
 
 //float envelope_generator(const unsigned int idx);
 

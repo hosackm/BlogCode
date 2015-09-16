@@ -12,6 +12,12 @@
 #include "config.h"
 #include "envelopes.h"
 
+//#include <time.h>
+#include <sys/time.h>
+#include <unistd.h>
+
+#include "synth.h"
+
 #define CHK(e) if(e != paNoError) return 1
 
 unsigned int idx = 0;
@@ -37,10 +43,10 @@ static int callback(const void *input, void *output,
     for(i = 0; i < frameCount; ++i)
     {
         float samp = d->table[(int)d->idx];
-        float gain = envelope_generator(d->numTicks);
+        //float gain = envelope_generator(d->numTicks);
 
-        //out[i] = d->table[(int)d->idx];
-        out[i] = samp * gain;
+        out[i] = d->table[(int)d->idx];
+        //out[i] = samp * gain;
 
         /* wrap around table */
         d->idx += d->incr;

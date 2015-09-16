@@ -50,10 +50,10 @@ TEST(TestEnvelopeGenerator, TestAttackState){
         .release_t = 0.5
     };
     (void)ableton_default;
-    struct timeval start;//, attack, decay, sustain, release, dead;
+    synth_time_t start;//, attack, decay, sustain, release, dead;
     time_now(&start);
     usleep(1);
-    EXPECT_EQ(ENVELOPE_STATE_ATTACK, envelope_get_state(ableton_default, start));
+    EXPECT_EQ(ENVELOPE_STATE_ATTACK, envelope_get_state(ableton_default, start, NULL));
 }
 
 TEST(TestEnvelopeGenerator, TestDecayState){
@@ -64,10 +64,10 @@ TEST(TestEnvelopeGenerator, TestDecayState){
         .sustain_g = 0.5,
         .release_t = 0.5
     };
-    struct timeval start;//, attack, decay, sustain, release, dead;
+    synth_time_t start;//, attack, decay, sustain, release, dead;
     time_now(&start);
     usleep(300000);
-    EXPECT_EQ(ENVELOPE_STATE_DECAY, envelope_get_state(ableton_default, start));
+    EXPECT_EQ(ENVELOPE_STATE_DECAY, envelope_get_state(ableton_default, start, NULL));
 }
 
 TEST(TestEnvelopeGenerator, TestSustainState){
@@ -78,10 +78,10 @@ TEST(TestEnvelopeGenerator, TestSustainState){
         .sustain_g = 0.5,
         .release_t = 0.5
     };
-    struct timeval start;//, attack, decay, sustain, release, dead;
+    synth_time_t start;//, attack, decay, sustain, release, dead;
     time_now(&start);
     usleep(700000);
-    EXPECT_EQ(ENVELOPE_STATE_SUSTAIN, envelope_get_state(ableton_default, start));
+    EXPECT_EQ(ENVELOPE_STATE_SUSTAIN, envelope_get_state(ableton_default, start, NULL));
 }
 
 TEST(TestEnvelopeGenerator, TestReleaseState){
@@ -93,11 +93,11 @@ TEST(TestEnvelopeGenerator, TestReleaseState){
         .release_t = 0.5
     };
 
-    struct timeval start;//, attack, decay, sustain, release, dead;
+    synth_time_t start;//, attack, decay, sustain, release, dead;
     time_now(&start);
     sleep(2);
     usleep(800000); /* 2.8 second sleep */
-    EXPECT_EQ(ENVELOPE_STATE_RELEASE, envelope_get_state(ableton_default, start));
+    EXPECT_EQ(ENVELOPE_STATE_RELEASE, envelope_get_state(ableton_default, start, NULL));
 }
 
 TEST(TestEnvelopeGenerator, TestDeadState){
@@ -108,11 +108,11 @@ TEST(TestEnvelopeGenerator, TestDeadState){
         .sustain_g = 0.5,
         .release_t = 0.5
     };
-    struct timeval start;//, attack, decay, sustain, release, dead;
+    synth_time_t start;//, attack, decay, sustain, release, dead;
     time_now(&start);
     sleep(3);
     usleep(500000);
-    EXPECT_EQ(ENVELOPE_STATE_DEAD, envelope_get_state(ableton_default, start));
+    EXPECT_EQ(ENVELOPE_STATE_DEAD, envelope_get_state(ableton_default, start, NULL));
 }
 
 int main(int argc, char *argv[]){
