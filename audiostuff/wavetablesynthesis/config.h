@@ -12,5 +12,6 @@
 #define SR      (48000.0)
 #define LSIZE   (1024)
 #define F       (440.0)
+#define NUM_VOICES (4)
 
 #endif /* __CONFIG_H__ */

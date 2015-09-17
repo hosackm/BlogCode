@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Hosack, Matthew. All rights reserved.
 //
 
-#include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include "envelopes.h"
 #include "config.h"
@@ -19,6 +19,29 @@
 static double envelope_gain_lin2(envelope_s env, double tsec);
 static double envelope_gain_exp2(envelope_s env, double tsec);
 static double exp_func(double sample);
+
+envelope_s *env_new(const double attack
+                    ,const double decay
+                    ,const double sustain
+                    ,const double release
+                    ,const unsigned int type)
+{
+    envelope_s *e = malloc(sizeof(envelope_s));
+
+    e->attack_t = attack;
+    e->decay_t = decay;
+    e->sustain_g = sustain;
+    e->release_t = release;
+    e->type = type;
+    
+    return e;
+}
+
+void env_destroy(envelope_s *e)
+{
+    if (e)
+        free(e);
+}
 
 double envelope_gain(const envelope_s env, const double tsec)
 {
