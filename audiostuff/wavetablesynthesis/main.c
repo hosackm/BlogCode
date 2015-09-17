@@ -6,16 +6,7 @@
 //  Copyright (c) 2015 Matthew Hosack. All rights reserved.
 //
 
-#include <stdio.h>
 #include "portaudio.h"
-#include "tables.h"
-#include "config.h"
-#include "envelopes.h"
-
-//#include <time.h>
-#include <sys/time.h>
-#include <unistd.h>
-
 #include "synth.h"
 
 #define CHK(e) if(e != paNoError) return 1
@@ -79,7 +70,6 @@ int main(int argc, const char * argv[]) {
     PaStream *stream;
     PaError err;
     tableData data;
-    int i;
     
     /* Setup our frequency and table information */
     data.incr = F / SR * LSIZE;
@@ -90,7 +80,7 @@ int main(int argc, const char * argv[]) {
     err = Pa_Initialize();
     CHK(err);
 
-    err = Pa_OpenDefaultStream(&stream, 0, 1, paFloat32, SR, 4096, callback, &data);
+    err = Pa_OpenDefaultStream(&stream, 0, 1, paFloat32, SR, 512, callback, &data);
     CHK(err);
     
     err = Pa_StartStream(stream);

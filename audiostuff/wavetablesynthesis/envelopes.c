@@ -15,36 +15,11 @@
 /* Hardcoded for now, but will really depend on when user releases key */
 #define SUSTAIN_LENGTH 2.0
 
-/* Function used for exponential envelopes */
-//#define EXP(x) ((log10(1.0 + x) / (1.0 + x)) * (2.0 / log10(2.0)))
-
-
-/*|     CRAPPY ASCII ART ATTEMPTING TO EXPLAIN    +
- *|          ---                                  +
- *|        /|   \                                 +
- *|       / |    \                                +
- *|      /  |     \                               +
- *|     /A  |  D   \                              +
- *|    / T  |  E    \_________+_________          +
- *|   /  T  |  C    |         |        |\ REL     +
- *|  /   A  |  A    |      SUSTAIN     | l   EA   +
- *| /    C  |  Y    |         |        |  l    SE +
- *|/     K  |       |         |        |    l____ +
- *+---------+-------+---------v--------+----------+
- *<attack_t><decay_t>                  <release_t>*/
-
-
-/* Default parameters for Ableton Analog Synth */
-/*envelope_s ableton_default = {
-    .attack_t = 0.005,
-    .decay_t = 0.626,
-    .sustain_g = 0.5,
-    .release_t = 0.5
-};*/
-
 /* Private Helper Functions */
 static double envelope_gain_lin(envelope_s env, synth_time_t birth);
 static double envelope_gain_exp(envelope_s env, synth_time_t birth);
+static double envelope_gain_lin2(envelope_s env, double tsec);
+static double envelope_gain_exp2(envelope_s env, double tsec);
 static double exp_func(double sample);
 
 /* Public envelope function */
@@ -63,9 +38,6 @@ double envelope_gain(envelope_s env, synth_time_t birth)
             break;
     }
     
-    /* Clamp values between -1.0 and 1.0 */
-//    g = g > 1.0 ? 1.0 : g;
-//    g = g < -1.0 ? -1.0 : g;
     /* Return the gain from the helper function */
     return g;
 }
@@ -190,4 +162,121 @@ static double exp_func(double sample)
     sample = sample > 1.0 ? 1.0 : sample;
     sample = sample < -1.0 ? -1.0 : sample;
     return (log10(sample + 1.0) / (1.0 + sample)) * (2.0 / log10(2.0));
+}
+
+double envelope_gain2(const envelope_s env, const double tsec)
+{
+    double g;
+    switch (env.type) {
+        case ENVELOPE_TYPE_LINEAR:
+            /* Call Linear */
+            g = envelope_gain_lin2(env, tsec);
+            break;
+        case ENVELOPE_TYPE_EXPONENTIAL:
+        default:
+            /* Call exponential */
+            g = envelope_gain_exp2(env, tsec);
+            break;
+    }
+    
+    /* Return the gain from the helper function */
+    return g;
+}
+
+unsigned int
+envelope_get_state2(
+    const envelope_s env,
+    const double tsec)
+{
+    double passed = 0.0;
+
+    if  (tsec < env.attack_t) {
+        return ENVELOPE_STATE_ATTACK;
+    }
+    
+    passed = env.attack_t;
+    if (tsec > passed && tsec < (env.decay_t + passed)) {
+        return ENVELOPE_STATE_DECAY;
+    }
+    
+    passed += env.decay_t;
+    if (tsec > passed &&
+        tsec < (SUSTAIN_LENGTH + passed)) {
+        return ENVELOPE_STATE_SUSTAIN;
+    }
+    
+    passed += SUSTAIN_LENGTH;
+    if (tsec > passed &&
+        tsec < (env.release_t + passed)) {
+        return ENVELOPE_STATE_RELEASE;
+    }
+
+    return ENVELOPE_STATE_DEAD;
+}
+
+static double envelope_gain_lin2(envelope_s env, double tsec)
+{
+    /*
+     * 1. Find State based on time
+     * 2. Go to the state section and calculate gain
+     */
+    double x; /* x value in seconds inside state.
+               ie: ATTACK - 0.5: 500ms into attack transient */
+    const unsigned int state = envelope_get_state2(env, tsec);
+    double amp;
+    
+    switch (state) {
+        case ENVELOPE_STATE_ATTACK:
+            amp = x / env.attack_t;
+            break;
+        case ENVELOPE_STATE_DECAY:
+            amp = 1.0 - (1.0 - env.sustain_g) * (x / env.decay_t);
+            break;
+        case ENVELOPE_STATE_SUSTAIN:
+            amp = env.sustain_g;
+            break;
+        case ENVELOPE_STATE_RELEASE:
+            amp = env.sustain_g - (env.sustain_g * (x / env.attack_t));
+            break;
+        case ENVELOPE_STATE_DEAD:
+        default:
+            amp = 0.0f;
+            break;
+    }
+    
+    return amp;
+}
+
+static double envelope_gain_exp2(envelope_s env, double tsec)
+{
+    /*
+     * 1. Find State based on time
+     * 2. Go to the state section and calculate gain
+     */
+    double x; /* x value in seconds inside state.
+               ie: ATTACK - 0.5: 500ms into attack transient */
+    const unsigned int state = envelope_get_state2(env, tsec);
+    double amp;
+    
+    /* Copied from Linear Version.  Must modify */
+    switch (state) {
+        case ENVELOPE_STATE_ATTACK:
+            amp = exp_func(x / env.attack_t);
+            break;
+        case ENVELOPE_STATE_DECAY:
+            amp = 1.0 - (1.0 - env.sustain_g) * exp_func(x / env.decay_t);
+            break;
+        case ENVELOPE_STATE_SUSTAIN:
+            amp = env.sustain_g;
+            break;
+        case ENVELOPE_STATE_RELEASE:
+            amp = env.sustain_g - (env.sustain_g * exp_func(x / env.attack_t));
+            break;
+        case ENVELOPE_STATE_DEAD:
+        default:
+            amp = 0.0f;
+            break;
+    }
+    
+    return amp;
 }
