@@ -14,5 +14,6 @@
 #define F       (440.0)
 #define NUM_VOICES (4)
 #define NUM_MIDI_NOTES (128)
+#define WAVEFORM (OSC_TYPE_SQUARE)
 
 #endif /* __CONFIG_H__ */

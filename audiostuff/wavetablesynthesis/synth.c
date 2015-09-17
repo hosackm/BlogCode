@@ -47,7 +47,7 @@ synth synth_new()
     {
         s->keyboard[i].midi_num = i;
         s->keyboard[i].velocity = 0;
-        s->keyboard[i].oscillator = osc_new(mtof(i), OSC_TYPE_SINE);
+        s->keyboard[i].oscillator = osc_new(mtof(i), WAVEFORM);
     }
     
     return s;
@@ -112,7 +112,7 @@ double synth_tick(synth s)
 
             /* Apply velocity and envelope to raw sample */
             sample += osc * velgain * envgain;
-            
+
             /* If the note should be dead, destroy it */
             if (envelope_get_state(*s->envelope, age) == ENVELOPE_STATE_DEAD)
                 synth_delete_note(s, i);
