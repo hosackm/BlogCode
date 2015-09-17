@@ -110,43 +110,55 @@ extern "C" {
 //    //EXPECT_NEAR(1.0 / 5.0, envelope_gain(ableton_default, start), 0.1);
 //}
 
-TEST(TestEnvGen, TestEnvStates)
+//TEST(TestEnvGen, TestEnvStates)
+//{
+//    envelope_s ableton_default = {
+//        .attack_t = 0.005,
+//        .decay_t = 0.625,
+//        .sustain_g = 0.5,
+//        .release_t = 0.5
+//    };
+//    
+//    double incr = 0.000001; /* usec accuracy is unlikely in an OS */
+//    double input = 0.0;
+//    
+//    while (input < 0.005) {
+//        EXPECT_EQ(ENVELOPE_STATE_ATTACK, envelope_get_state(ableton_default, input));
+//        input += incr;
+//    }
+//    
+//    while (input < 0.63) {
+//        EXPECT_EQ(ENVELOPE_STATE_DECAY, envelope_get_state(ableton_default, input));
+//        input += incr;
+//    }
+//    
+//    while (input < 2.63) {
+//        EXPECT_EQ(ENVELOPE_STATE_SUSTAIN, envelope_get_state(ableton_default, input));
+//        input += incr;
+//    }
+//    
+//    while (input < 3.13) {
+//        EXPECT_EQ(ENVELOPE_STATE_RELEASE, envelope_get_state(ableton_default, input));
+//        input += incr;
+//    }
+//    
+//    while (input < 3.5) {
+//        EXPECT_EQ(ENVELOPE_STATE_DEAD, envelope_get_state(ableton_default, input));
+//        input += incr;
+//    }
+//}
+
+TEST(TestUtils, TestMTOF)
 {
-    envelope_s ableton_default = {
-        .attack_t = 0.005,
-        .decay_t = 0.625,
-        .sustain_g = 0.5,
-        .release_t = 0.5
-    };
-    
-    double incr = 0.000001; /* usec accuracy is unlikely in an OS */
-    double input = 0.0;
-    
-    while (input < 0.005) {
-        EXPECT_EQ(ENVELOPE_STATE_ATTACK, envelope_get_state(ableton_default, input));
-        input += incr;
-    }
-    
-    while (input < 0.63) {
-        EXPECT_EQ(ENVELOPE_STATE_DECAY, envelope_get_state(ableton_default, input));
-        input += incr;
-    }
-    
-    while (input < 2.63) {
-        EXPECT_EQ(ENVELOPE_STATE_SUSTAIN, envelope_get_state(ableton_default, input));
-        input += incr;
-    }
-    
-    while (input < 3.13) {
-        EXPECT_EQ(ENVELOPE_STATE_RELEASE, envelope_get_state(ableton_default, input));
-        input += incr;
-    }
-    
-    while (input < 3.5) {
-        EXPECT_EQ(ENVELOPE_STATE_DEAD, envelope_get_state(ableton_default, input));
-        input += incr;
-    }
+    EXPECT_EQ(440.0f, mtof(69));
+    EXPECT_EQ(2489.0f, mtof(99));
 }
+
+//TEST(TestUtils, TestFTOM)
+//{
+//    EXPECT_EQ(69, ftom(440.0f));
+//    EXPECT_EQ(99, ftom(2489.0f));
+//}
 
 //TEST(TestEnvGen, TestAttackRateExp2)
 //{

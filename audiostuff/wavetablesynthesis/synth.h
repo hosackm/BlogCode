@@ -26,4 +26,7 @@ int synth_set_envelope(synth s, envelope_s *e);
 
 double synth_tick(synth s);
 
+int synth_add_note(synth s, unsigned int note, unsigned int velocity);
+int synth_delete_note(synth s, unsigned int note);
+
 #endif /* __SYNTH_H__ */

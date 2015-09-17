@@ -12,9 +12,10 @@
 #include <string.h>
 
 struct midi_note_s {
-    unsigned char midi_num;
-    unsigned char velocity;
+    unsigned int midi_num;
+    unsigned int velocity;
     osc_s *oscillator;
+    synth_time_t pressed;
 };
 
 struct synth_s {
@@ -33,19 +34,25 @@ struct synth_s {
     double noise_gain;
     
     /* Midi Notes */
-    struct midi_note_s notes[256];
-    unsigned int num_notes;
+    struct midi_note_s keyboard[NUM_MIDI_NOTES];
 };
 
 synth synth_new()
 {
+    int i;
     struct synth_s *s = malloc(sizeof(struct synth_s));
     
     s->num_oscillators = 0;
-    s->num_notes = 0;
     s->noise_gain = 0.0f;
     s->noise_osc = osc_new(0.0f, OSC_TYPE_NOISE);
-    memset(s->notes, 0, sizeof(struct midi_note_s) * 256);
+
+    /* Initialize the keyboard */
+    for(i = 0; i < NUM_MIDI_NOTES; i++)
+    {
+        s->keyboard[i].midi_num = i;
+        s->keyboard[i].velocity = 0;
+        s->keyboard[i].oscillator = osc_new(mtof(i), OSC_TYPE_SINE);
+    }
     
     return s;
 }
@@ -68,6 +75,11 @@ void synth_destroy(synth s)
 
         /* Free additive noise oscillator */
         osc_destroy(s->noise_osc);
+        
+        /* Destroy da keyboard */
+        for (i = 0; i < NUM_MIDI_NOTES; ++i) {
+            osc_destroy(s->keyboard[i].oscillator);
+        }
 
         /* Free the synth */
         free(s);
@@ -106,16 +118,62 @@ int synth_set_envelope(synth s, envelope_s *e)
 
 double synth_tick(synth s)
 {
-    int i;
+    int i, num_keys = 0;
     double sample = 0.0f;
+
     if (!s)
         return 0.0f;
-    
-    for (i = 0; i < s->num_oscillators; ++i) {
-        sample += osc_tick(s->oscillators[i]) / s->num_oscillators;
+
+    /* Adds all notes played */
+    for (i = 0; i < NUM_MIDI_NOTES; ++i) {
+        /* Record the time */
+        synth_time_t now;
+        time_now(&now);
+
+        /* If this note is active add it to the upcoming sample */
+        if (s->keyboard[i].velocity > 0) {
+            /* Raw sample from oscillator */
+            double osc = osc_tick(s->keyboard[i].oscillator);
+            /* Get gain from velocity of MIDI event */
+            double velgain = vtog(s->keyboard[i].velocity);
+            /* Get envelope gain */
+            double envgain = envelope_gain(*s->envelope, elapsed_time(s->keyboard[i].pressed, now));
+
+            /* Apply velocity and envelope to raw sample */
+            sample += osc * velgain * envgain;
+
+            /* Increment the number of keys being played so we can scale it to between -1 and 1 */
+            num_keys++;
+        }
     }
     
-    return sample;
+    /* Scale the sample by the number of keys being played */
+    return sample / num_keys;
+}
+
+int synth_add_note(synth s, unsigned int note, unsigned int velocity)
+{
+    synth_time_t pressed;
+    if (!s)
+        return -1;
+
+    /* Record the timestamp for the midi pressed event */
+    time_now(&pressed);
+    s->keyboard[note].pressed = pressed;
+
+    /* Record the velocity */
+    s->keyboard[note].velocity = velocity;
+    
+    return 0;
+}
+
+int synth_delete_note(synth s, unsigned int note)
+{
+    if (!s || note >= NUM_MIDI_NOTES)
+        return -1;
+
+    s->keyboard[note].velocity = 0;
+    return 0;
 }
 
 /* TODO

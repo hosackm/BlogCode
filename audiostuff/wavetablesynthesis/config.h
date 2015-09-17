@@ -13,5 +13,6 @@
 #define LSIZE   (1024)
 #define F       (440.0)
 #define NUM_VOICES (4)
+#define NUM_MIDI_NOTES (128)
 
 #endif /* __CONFIG_H__ */

@@ -22,3 +22,18 @@ double elapsed_time(synth_time_t start, synth_time_t end)
 {
     return elapsed_time_ms(start, end) / 1000.0;
 }
+
+double mtof(const int m)
+{
+    return pow( 2, ((m - 69) / 12.0)) * 440.0f;
+}
+
+unsigned int ftom(const double f)
+{
+    return 12.0 * log2(f / 440.0f) + 69;
+}
+
+double vtog(const unsigned int v)
+{
+    return v / 127.0;
+}
