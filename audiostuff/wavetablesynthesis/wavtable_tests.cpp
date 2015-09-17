@@ -32,22 +32,22 @@ extern "C" {
 //    EXPECT_NEAR(0.003, x, 0.01);
 //}
 
-TEST(TestEnvelopeGenerator, TestDecayState){
-    /* Between 5ms and 630ms */
-    envelope_s ableton_default = {
-        .attack_t = 0.005,
-        .decay_t = 0.625,
-        .sustain_g = 0.5,
-        .release_t = 0.5
-    };
-    double x;
-    unsigned int state;
-    synth_time_t start;//, attack, decay, sustain, release, dead;
-    time_now(&start);
-    usleep(300000); /* 300 ms */
-    state = envelope_get_state(ableton_default, start, &x);
-    EXPECT_EQ(ENVELOPE_STATE_DECAY, state);
-}
+//TEST(TestEnvelopeGenerator, TestDecayState){
+//    /* Between 5ms and 630ms */
+//    envelope_s ableton_default = {
+//        .attack_t = 0.005,
+//        .decay_t = 0.625,
+//        .sustain_g = 0.5,
+//        .release_t = 0.5
+//    };
+//    double x;
+//    unsigned int state;
+//    synth_time_t start;//, attack, decay, sustain, release, dead;
+//    time_now(&start);
+//    usleep(300000); /* 300 ms */
+//    state = envelope_get_state(ableton_default, start, &x);
+//    EXPECT_EQ(ENVELOPE_STATE_DECAY, state);
+//}
 
 //TEST(TestEnvelopeGenerator, TestSustainState){
 //    /* Between 630ms and 2630ms */
@@ -93,6 +93,22 @@ TEST(TestEnvelopeGenerator, TestDecayState){
 //    usleep(500000);
 //    EXPECT_EQ(ENVELOPE_STATE_DEAD, envelope_get_state(ableton_default, start, NULL));
 //}
+
+TEST(TestEnvelopeGenerator, TestAttackRateExp)
+{
+    envelope_s ableton_default = {
+        .attack_t = 0.005,
+        .decay_t = 0.625,
+        .sustain_g = 0.5,
+        .release_t = 0.5,
+        .type = ENVELOPE_TYPE_LINEAR//ENVELOPE_TYPE_EXPONENTIAL
+    };
+    synth_time_t start;
+    time_now(&start);
+    sleep(4);
+    envelope_gain(ableton_default, start);
+    //EXPECT_NEAR(1.0 / 5.0, envelope_gain(ableton_default, start), 0.1);
+}
 
 int main(int argc, char *argv[]){
     ::testing::InitGoogleTest(&argc, argv);

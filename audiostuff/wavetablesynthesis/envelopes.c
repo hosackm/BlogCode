@@ -7,6 +7,7 @@
 //
 
 #include <stdio.h>
+#include <math.h>
 #include "envelopes.h"
 #include "config.h"
 #include "utils.h"
@@ -14,6 +15,8 @@
 /* Hardcoded for now, but will really depend on when user releases key */
 #define SUSTAIN_LENGTH 2.0
 
+/* Function used for exponential envelopes */
+//#define EXP(x) ((log10(1.0 + x) / (1.0 + x)) * (2.0 / log10(2.0)))
 
 
 /*|     CRAPPY ASCII ART ATTEMPTING TO EXPLAIN    +
@@ -42,6 +45,7 @@
 /* Private Helper Functions */
 static double envelope_gain_lin(envelope_s env, synth_time_t birth);
 static double envelope_gain_exp(envelope_s env, synth_time_t birth);
+static double exp_func(double sample);
 
 /* Public envelope function */
 double envelope_gain(envelope_s env, synth_time_t birth)
@@ -88,7 +92,7 @@ static double envelope_gain_lin(envelope_s env, synth_time_t birth)
             amp = env.sustain_g;
             break;
         case ENVELOPE_STATE_RELEASE:
-            amp = env.sustain_g - (x / env.attack_t);
+            amp = env.sustain_g - (env.sustain_g * (x / env.attack_t));
             break;
         case ENVELOPE_STATE_DEAD:
         default:
@@ -112,16 +116,16 @@ static double envelope_gain_exp(envelope_s env, synth_time_t birth)
     /* Copied from Linear Version.  Must modify */
     switch (state) {
         case ENVELOPE_STATE_ATTACK:
-            amp = x / env.attack_t;
+            amp = exp_func(x / env.attack_t);
             break;
         case ENVELOPE_STATE_DECAY:
-            amp = 1.0 - (1.0 - env.sustain_g) * (x / env.decay_t);
+            amp = 1.0 - (1.0 - env.sustain_g) * exp_func(x / env.decay_t);
             break;
         case ENVELOPE_STATE_SUSTAIN:
             amp = env.sustain_g;
             break;
         case ENVELOPE_STATE_RELEASE:
-            amp = env.sustain_g - (x / env.attack_t);
+            amp = env.sustain_g - (env.sustain_g * exp_func(x / env.attack_t));
             break;
         case ENVELOPE_STATE_DEAD:
         default:
@@ -178,6 +182,14 @@ unsigned int envelope_get_state(envelope_s env, synth_time_t birth, double *over
         *overlap = 0.0f;
     }
     return ENVELOPE_STATE_DEAD;
+}
+
+/* Gives exponential curve */
+static double exp_func(double sample)
+{
+    sample = sample > 1.0 ? 1.0 : sample;
+    sample = sample < -1.0 ? -1.0 : sample;
+    return (log10(sample + 1.0) / (1.0 + sample)) * (2.0 / log10(2.0));
 }
 
 //float envelope_generator(const unsigned int idx)
