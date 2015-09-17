@@ -11,32 +11,19 @@
 
 #define CHK(e) if(e != paNoError) return 1
 
-typedef struct {
-    osc_s *o[NUM_VOICES];
-    envelope_s *e;
-    synth_time_t start;
-}synth_data;
-
 static int callback(const void *input, void *output,
                     unsigned long frameCount,
                     const PaStreamCallbackTimeInfo* timeInfo,
                     PaStreamCallbackFlags statusFlags,
                     void *userData)
 {
-    int i, j;
+    int i;
     float *out = (float*)output;
-    synth_data *s = (synth_data*)userData;
-    synth_time_t now;
+    synth s = (synth)userData;
     
     for(i = 0; i < frameCount; ++i)
     {
-        float sample = 0.0f;
-        for (j = 0; j < NUM_VOICES; ++j) {
-            sample += osc_tick(s->o[j]) / NUM_VOICES;
-        }
-        time_now(&now);
-        float gain = envelope_gain(*s->e, elapsed_time(s->start, now));
-        *out++ = sample * gain;
+        *out++ = synth_tick(s);
     }
 
     return paContinue;
@@ -45,26 +32,23 @@ static int callback(const void *input, void *output,
 int main(int argc, const char * argv[]) {
     PaStream *stream;
     PaError err;
-    synth_data sdata;
-    int i;
-    
-    /* Set up all the voices */
-    unsigned int types[NUM_VOICES] = {OSC_TYPE_SINE, OSC_TYPE_SQUARE, OSC_TYPE_SAWTOOTH, OSC_TYPE_SINE};
-    for(i = 0; i < NUM_VOICES; ++i)
-    {
-        sdata.o[i] = osc_new(440.0f * i, types[i]);
-    }
-    
-    sdata.e = env_new(0.005, 0.625, 0.5, 0.5, ENVELOPE_TYPE_EXPONENTIAL);
+    synth s = synth_new();
+
+    synth_add_oscillator(s, osc_new(440.0f, OSC_TYPE_SINE));
+    synth_add_oscillator(s, osc_new(880.0f, OSC_TYPE_SINE));
+    synth_add_oscillator(s, osc_new(1760.0f, OSC_TYPE_SINE));
+    synth_add_oscillator(s, osc_new(1108.7f, OSC_TYPE_SQUARE));
+
+    /* Test that you can't add more than 4 oscillators */
+    synth_add_oscillator(s, osc_new(440.0f, OSC_TYPE_SINE));
+
+    synth_set_envelope(s, env_new(0.005, 0.625, 0.5, 0.5, ENVELOPE_TYPE_EXPONENTIAL));
     
     err = Pa_Initialize();
     CHK(err);
 
-    err = Pa_OpenDefaultStream(&stream, 0, 1, paFloat32, SR, 512, callback, (void*)&sdata);
+    err = Pa_OpenDefaultStream(&stream, 0, 1, paFloat32, SR, 512, callback, (void*)s);
     CHK(err);
-
-    /* Start this note */
-    time_now(&sdata.start);
     
     err = Pa_StartStream(stream);
     CHK(err);
@@ -78,12 +62,8 @@ int main(int argc, const char * argv[]) {
     CHK(err);
     
     Pa_Terminate();
-
-    for (i = 0; i < NUM_VOICES; ++i) {
-        osc_destroy(sdata.o[i]);
-    }
-
-    env_destroy(sdata.e);
     
+    synth_destroy(s);
+     
     return 0;
 }

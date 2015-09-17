@@ -16,4 +16,14 @@
 #include "types.h"
 #include "oscillator.h"
 
+typedef struct synth_s *synth;
+
+synth synth_new();
+void synth_destroy(synth s);
+
+int synth_add_oscillator(synth s, osc_s *o);
+int synth_set_envelope(synth s, envelope_s *e);
+
+double synth_tick(synth s);
+
 #endif /* __SYNTH_H__ */
