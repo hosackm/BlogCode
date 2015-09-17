@@ -19,10 +19,6 @@ struct midi_note_s {
 };
 
 struct synth_s {
-    /* Oscillators */
-    osc_s *oscillators[NUM_VOICES];
-    unsigned int num_oscillators;
-
     /* Envelope */
     envelope_s *envelope;
     
@@ -42,7 +38,7 @@ synth synth_new()
     int i;
     struct synth_s *s = malloc(sizeof(struct synth_s));
     
-    s->num_oscillators = 0;
+//    s->num_oscillators = 0;
     s->noise_gain = 0.0f;
     s->noise_osc = osc_new(0.0f, OSC_TYPE_NOISE);
 
@@ -66,13 +62,6 @@ void synth_destroy(synth s)
         if (s->envelope)
             env_destroy(s->envelope);
 
-        /* Free all the oscillators if they exist*/
-        for (i = 0; i < NUM_VOICES; ++i) {
-            if (s->oscillators[i]) {
-                osc_destroy(s->oscillators[i]);
-            }
-        }
-
         /* Free additive noise oscillator */
         osc_destroy(s->noise_osc);
         
@@ -84,26 +73,6 @@ void synth_destroy(synth s)
         /* Free the synth */
         free(s);
     }
-}
-
-int synth_add_oscillator(synth s, osc_s *o)
-{
-    /* Bad Pointers */
-    if (!s || !o)
-    {
-        return -1;
-    }
-    
-    /* Already have max voices */
-    if (s->num_oscillators >= NUM_VOICES) {
-        return -1;
-    }
-
-    /* Add oscillator */
-    s->oscillators[s->num_oscillators] = o;
-    s->num_oscillators++;
-    
-    return 0;
 }
 
 int synth_set_envelope(synth s, envelope_s *e)
@@ -175,9 +144,3 @@ int synth_delete_note(synth s, unsigned int note)
     s->keyboard[note].velocity = 0;
     return 0;
 }
-
-/* TODO
- * synth_add_note()
- * synth_delete_note()
- * There should be no concept of oscillators.  Every note should have it's own oscillator
- */

@@ -34,13 +34,13 @@ int main(int argc, const char * argv[]) {
     PaError err;
     synth s = synth_new();
 
-    synth_add_oscillator(s, osc_new(440.0f, OSC_TYPE_SINE));
-    synth_add_oscillator(s, osc_new(880.0f, OSC_TYPE_SINE));
-    synth_add_oscillator(s, osc_new(1760.0f, OSC_TYPE_SINE));
-    synth_add_oscillator(s, osc_new(1108.7f, OSC_TYPE_SQUARE));
+    //synth_add_oscillator(s, osc_new(440.0f, OSC_TYPE_SINE));
+    //synth_add_oscillator(s, osc_new(880.0f, OSC_TYPE_SINE));
+    //synth_add_oscillator(s, osc_new(1760.0f, OSC_TYPE_SINE));
+    //synth_add_oscillator(s, osc_new(1108.7f, OSC_TYPE_SQUARE));
 
     /* Test that you can't add more than 4 oscillators */
-    synth_add_oscillator(s, osc_new(440.0f, OSC_TYPE_SINE));
+    //synth_add_oscillator(s, osc_new(440.0f, OSC_TYPE_SINE));
 
     synth_set_envelope(s, env_new(0.005, 0.625, 0.5, 0.5, ENVELOPE_TYPE_EXPONENTIAL));
 
