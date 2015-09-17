@@ -13,168 +13,23 @@
 #include "utils.h"
 
 /* Hardcoded for now, but will really depend on when user releases key */
-#define SUSTAIN_LENGTH 2.0
+#define SUSTAIN_LENGTH 0.5 // ableton default
 
 /* Private Helper Functions */
-static double envelope_gain_lin(envelope_s env, synth_time_t birth);
-static double envelope_gain_exp(envelope_s env, synth_time_t birth);
 static double envelope_gain_lin2(envelope_s env, double tsec);
 static double envelope_gain_exp2(envelope_s env, double tsec);
 static double exp_func(double sample);
 
-/* Public envelope function */
-double envelope_gain(envelope_s env, synth_time_t birth)
+double envelope_gain(const envelope_s env, const double tsec)
 {
+    /* Depending on envelope type call either exponential or linear version */
     double g;
     switch (env.type) {
         case ENVELOPE_TYPE_LINEAR:
-            /* Call Linear */
-            g = envelope_gain_lin(env, birth);
-            break;
-        case ENVELOPE_TYPE_EXPONENTIAL:
-        default:
-            /* Call exponential */
-            g = envelope_gain_exp(env, birth);
-            break;
-    }
-    
-    /* Return the gain from the helper function */
-    return g;
-}
-
-static double envelope_gain_lin(envelope_s env, synth_time_t birth)
-{
-    /*
-     * 1. Find State based on time
-     * 2. Go to the state section and calculate gain
-     */
-    double x; /* x value in seconds inside state.
-               ie: ATTACK - 0.5: 500ms into attack transient */
-    const unsigned int state = envelope_get_state(env, birth, &x);
-    double amp;
-    
-    switch (state) {
-        case ENVELOPE_STATE_ATTACK:
-            amp = x / env.attack_t;
-            break;
-        case ENVELOPE_STATE_DECAY:
-            amp = 1.0 - (1.0 - env.sustain_g) * (x / env.decay_t);
-            break;
-        case ENVELOPE_STATE_SUSTAIN:
-            amp = env.sustain_g;
-            break;
-        case ENVELOPE_STATE_RELEASE:
-            amp = env.sustain_g - (env.sustain_g * (x / env.attack_t));
-            break;
-        case ENVELOPE_STATE_DEAD:
-        default:
-            amp = 0.0f;
-            break;
-    }
-    
-    return amp;
-}
-static double envelope_gain_exp(envelope_s env, synth_time_t birth)
-{
-    /*
-     * 1. Find State based on time
-     * 2. Go to the state section and calculate gain
-     */
-    double x; /* x value in seconds inside state.
-                 ie: ATTACK - 0.5: 500ms into attack transient */
-    const unsigned int state = envelope_get_state(env, birth, &x);
-    double amp;
-
-    /* Copied from Linear Version.  Must modify */
-    switch (state) {
-        case ENVELOPE_STATE_ATTACK:
-            amp = exp_func(x / env.attack_t);
-            break;
-        case ENVELOPE_STATE_DECAY:
-            amp = 1.0 - (1.0 - env.sustain_g) * exp_func(x / env.decay_t);
-            break;
-        case ENVELOPE_STATE_SUSTAIN:
-            amp = env.sustain_g;
-            break;
-        case ENVELOPE_STATE_RELEASE:
-            amp = env.sustain_g - (env.sustain_g * exp_func(x / env.attack_t));
-            break;
-        case ENVELOPE_STATE_DEAD:
-        default:
-            amp = 0.0f;
-            break;
-    }
-
-    return amp;
-}
-
-//static unsigned int envelope_get_state(envelope_s env, synth_time_t birth)
-unsigned int envelope_get_state(envelope_s env, synth_time_t birth, double *overlap)
-{
-    /* Calculate the time since this note was
-     * created and return ADSR state that is should be in
-     */
-    synth_time_t now;
-    time_now(&now);
-    double alive = elapsed_time(birth, now);
-    double sum = 0.0; /* accumulate time over ADSR states to create window */
-    
-    if (alive > 0 && alive < env.attack_t) {
-        if (overlap) {
-            *overlap = alive;
-        }
-        return ENVELOPE_STATE_ATTACK;
-    }
-
-    sum += env.attack_t;
-    if (alive > sum && alive < (env.decay_t + sum)) {
-        if (overlap) {
-            *overlap = alive - sum;
-        }
-        return ENVELOPE_STATE_DECAY;
-    }
-
-    sum += env.decay_t;
-    if (alive > sum && alive < (SUSTAIN_LENGTH + sum)) {
-        if (overlap) {
-            *overlap = alive - sum;
-        }
-        return ENVELOPE_STATE_SUSTAIN;
-    }
-
-    sum += SUSTAIN_LENGTH;
-    if (alive > sum && alive < (env.release_t + sum)) {
-        if (overlap) {
-            *overlap = alive - sum;
-        }
-        return ENVELOPE_STATE_RELEASE;
-    }
-
-    if (overlap) {
-        *overlap = 0.0f;
-    }
-    return ENVELOPE_STATE_DEAD;
-}
-
-/* Gives exponential curve */
-static double exp_func(double sample)
-{
-    sample = sample > 1.0 ? 1.0 : sample;
-    sample = sample < -1.0 ? -1.0 : sample;
-    return (log10(sample + 1.0) / (1.0 + sample)) * (2.0 / log10(2.0));
-}
-
-double envelope_gain2(const envelope_s env, const double tsec)
-{
-    double g;
-    switch (env.type) {
-        case ENVELOPE_TYPE_LINEAR:
-            /* Call Linear */
             g = envelope_gain_lin2(env, tsec);
             break;
         case ENVELOPE_TYPE_EXPONENTIAL:
         default:
-            /* Call exponential */
             g = envelope_gain_exp2(env, tsec);
             break;
     }
@@ -183,37 +38,54 @@ double envelope_gain2(const envelope_s env, const double tsec)
     return g;
 }
 
+/* Given a time the note has been pressed, this function returns the state it is in
+ *  Attack - on the ascent
+ *  Decay - descending to sustain point
+ *  Sustain - sustaining at sustain_g level
+ *  Release - note has been released and descends to zero
+ */
 unsigned int
-envelope_get_state2(
+envelope_get_state(
     const envelope_s env,
     const double tsec)
 {
     double passed = 0.0;
+    
+    /* Error: negative time.  Send 0.0 for safety purpose */
+    if (tsec < 0)
+        return ENVELOPE_STATE_DEAD;
 
-    if  (tsec < env.attack_t) {
+    /* Attack period is between 0 and attack_t */
+    if  (tsec < env.attack_t)
         return ENVELOPE_STATE_ATTACK;
-    }
     
+    /* Decay period is between attack_t and decay_t */
     passed = env.attack_t;
-    if (tsec > passed && tsec < (env.decay_t + passed)) {
+    if (tsec < (env.decay_t + passed))
         return ENVELOPE_STATE_DECAY;
-    }
     
+    /* For now, the sustain is a constant.
+     * In reality this will be dictated by
+     * a MIDI controller etc. */
     passed += env.decay_t;
-    if (tsec > passed &&
-        tsec < (SUSTAIN_LENGTH + passed)) {
+    if (tsec < (SUSTAIN_LENGTH + passed))
         return ENVELOPE_STATE_SUSTAIN;
-    }
     
+    /* Release period is from sustain end to env.release_t */
     passed += SUSTAIN_LENGTH;
-    if (tsec > passed &&
-        tsec < (env.release_t + passed)) {
+    if (tsec < env.release_t + passed)
         return ENVELOPE_STATE_RELEASE;
-    }
 
+    /* The time is larger than any */
     return ENVELOPE_STATE_DEAD;
 }
 
+
+/*************************************************************
+ ++++++++++++++++++++ PRIVATE FUNCTIONS ++++++++++++++++++++++
+ *************************************************************/
+
+/* Helper function for linear envelopes */
 static double envelope_gain_lin2(envelope_s env, double tsec)
 {
     /*
@@ -222,21 +94,25 @@ static double envelope_gain_lin2(envelope_s env, double tsec)
      */
     double x; /* x value in seconds inside state.
                ie: ATTACK - 0.5: 500ms into attack transient */
-    const unsigned int state = envelope_get_state2(env, tsec);
+    const unsigned int state = envelope_get_state(env, tsec);
     double amp;
     
     switch (state) {
         case ENVELOPE_STATE_ATTACK:
+            x = tsec;
             amp = x / env.attack_t;
             break;
         case ENVELOPE_STATE_DECAY:
+            x = tsec - env.attack_t;
             amp = 1.0 - (1.0 - env.sustain_g) * (x / env.decay_t);
             break;
         case ENVELOPE_STATE_SUSTAIN:
+            x = tsec - env.attack_t - env.decay_t;
             amp = env.sustain_g;
             break;
         case ENVELOPE_STATE_RELEASE:
-            amp = env.sustain_g - (env.sustain_g * (x / env.attack_t));
+            x = tsec - env.attack_t - env.decay_t - SUSTAIN_LENGTH;
+            amp = env.sustain_g - (env.sustain_g * (x / env.sustain_g));
             break;
         case ENVELOPE_STATE_DEAD:
         default:
@@ -247,6 +123,7 @@ static double envelope_gain_lin2(envelope_s env, double tsec)
     return amp;
 }
 
+/* Helper function for exponential envelopes */
 static double envelope_gain_exp2(envelope_s env, double tsec)
 {
     /*
@@ -255,22 +132,26 @@ static double envelope_gain_exp2(envelope_s env, double tsec)
      */
     double x; /* x value in seconds inside state.
                ie: ATTACK - 0.5: 500ms into attack transient */
-    const unsigned int state = envelope_get_state2(env, tsec);
+    const unsigned int state = envelope_get_state(env, tsec);
     double amp;
     
     /* Copied from Linear Version.  Must modify */
     switch (state) {
         case ENVELOPE_STATE_ATTACK:
+            x = tsec;
             amp = exp_func(x / env.attack_t);
             break;
         case ENVELOPE_STATE_DECAY:
+            x = tsec - env.attack_t;
             amp = 1.0 - (1.0 - env.sustain_g) * exp_func(x / env.decay_t);
             break;
         case ENVELOPE_STATE_SUSTAIN:
+            x = tsec - env.attack_t - env.decay_t;
             amp = env.sustain_g;
             break;
         case ENVELOPE_STATE_RELEASE:
-            amp = env.sustain_g - (env.sustain_g * exp_func(x / env.attack_t));
+            x = tsec - env.attack_t - env.decay_t - SUSTAIN_LENGTH;
+            amp = env.sustain_g - (env.sustain_g * exp_func(x / env.sustain_g));
             break;
         case ENVELOPE_STATE_DEAD:
         default:
@@ -279,4 +160,12 @@ static double envelope_gain_exp2(envelope_s env, double tsec)
     }
     
     return amp;
+}
+
+/* Helper function for giving exponential curve to envelope */
+static double exp_func(double sample)
+{
+    sample = sample > 1.0 ? 1.0 : sample;
+    sample = sample < -1.0 ? -1.0 : sample;
+    return (log10(sample + 1.0) / (1.0 + sample)) * (2.0 / log10(2.0));
 }

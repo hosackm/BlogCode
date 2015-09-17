@@ -5,7 +5,7 @@
 //  Created by Matthew Hosack on 9/10/15.
 //  Copyright (c) 2015 Matthew Hosack. All rights reserved.
 //
-
+#include <stdio.h>
 #include "portaudio.h"
 #include "synth.h"
 
@@ -14,12 +14,12 @@
 unsigned int idx = 0;
 unsigned int incr = (int) (F / SR * LSIZE);
 unsigned int first = 1;
+FILE *f;
 
 typedef struct {
     float idx;
     float incr;
     const float *table;
-    int numTicks;
     synth_time_t note_on;
 } tableData;
 
@@ -40,6 +40,7 @@ static int callback(const void *input, void *output,
     int i;
     float *out = (float*)output;
     tableData *d = (tableData*)userData;
+    synth_time_t now;
     
     if (first) {
         time_now(&d->note_on);
@@ -49,18 +50,17 @@ static int callback(const void *input, void *output,
     for(i = 0; i < frameCount; ++i)
     {
         float samp = d->table[(int)d->idx];
-        float gain = envelope_gain(ableton_default, d->note_on);
-
-        //out[i] = d->table[(int)d->idx];
-        out[i] = samp * gain;
-
+        
         /* wrap around table */
         d->idx += d->incr;
         if (d->idx >= LSIZE) {
             d->idx = 0;
         }
 
-        d->numTicks++;
+        time_now(&now);
+        double gain = envelope_gain(ableton_default, elapsed_time(d->note_on, now));
+
+        out[i] = samp * gain;
     }
 
     return paContinue;
@@ -74,8 +74,7 @@ int main(int argc, const char * argv[]) {
     /* Setup our frequency and table information */
     data.incr = F / SR * LSIZE;
     data.idx  = 0;
-    data.table = &sintable[0];
-    data.numTicks = 0;
+    data.table = &sqtable[0];
     
     err = Pa_Initialize();
     CHK(err);

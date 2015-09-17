@@ -119,12 +119,33 @@ TEST(TestEnvGen, TestEnvStates)
         .release_t = 0.5
     };
     
-    //EXPECT_EQ(ENVELOPE_STATE_ATTACK, envelope_get_state2(ableton_default, 0.0));
-    //EXPECT_EQ(ENVELOPE_STATE_ATTACK, envelope_get_state2(ableton_default, 0.005));
-    //EXPECT_EQ(ENVELOPE_STATE_DECAY, envelope_get_state2(ableton_default, 0.006));
-    //EXPECT_EQ(ENVELOPE_STATE_DECAY, envelope_get_state2(ableton_default, 0.63));
-    EXPECT_EQ(ENVELOPE_STATE_SUSTAIN, envelope_get_state2(ableton_default, 0.65));
-    EXPECT_EQ(ENVELOPE_STATE_SUSTAIN, envelope_get_state2(ableton_default, 2.63));
+    double incr = 0.000001; /* usec accuracy is unlikely in an OS */
+    double input = 0.0;
+    
+    while (input < 0.005) {
+        EXPECT_EQ(ENVELOPE_STATE_ATTACK, envelope_get_state(ableton_default, input));
+        input += incr;
+    }
+    
+    while (input < 0.63) {
+        EXPECT_EQ(ENVELOPE_STATE_DECAY, envelope_get_state(ableton_default, input));
+        input += incr;
+    }
+    
+    while (input < 2.63) {
+        EXPECT_EQ(ENVELOPE_STATE_SUSTAIN, envelope_get_state(ableton_default, input));
+        input += incr;
+    }
+    
+    while (input < 3.13) {
+        EXPECT_EQ(ENVELOPE_STATE_RELEASE, envelope_get_state(ableton_default, input));
+        input += incr;
+    }
+    
+    while (input < 3.5) {
+        EXPECT_EQ(ENVELOPE_STATE_DEAD, envelope_get_state(ableton_default, input));
+        input += incr;
+    }
 }
 
 //TEST(TestEnvGen, TestAttackRateExp2)

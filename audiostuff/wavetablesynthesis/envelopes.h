@@ -45,15 +45,12 @@ enum
     ENVELOPE_TYPE_EXPONENTIAL
 };
 
-double envelope_gain(envelope_s env, synth_time_t birth);
-unsigned int envelope_get_state(envelope_s env, synth_time_t birth, double *overlap);
-
 /* Testing out replacements
  * Use double precisions instead of calculating time diffs internally
  * Note manager can do this time calculation and leave the envelope functions
  * simpler and easier to  test
  */
-double envelope_gain2(const envelope_s env, const double tsec);
-unsigned int envelope_get_state2(const envelope_s env, const double tsec);
+double envelope_gain(const envelope_s env, const double tsec);
+unsigned int envelope_get_state(const envelope_s env, const double tsec);
 
 #endif /* __ENVELOPES_H__ */
