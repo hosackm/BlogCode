@@ -14,5 +14,6 @@
 #include "config.h"
 #include "tables.h"
 #include "types.h"
+#include "oscillator.h"
 
 #endif /* __SYNTH_H__ */

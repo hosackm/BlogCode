@@ -11,18 +11,6 @@
 
 #define CHK(e) if(e != paNoError) return 1
 
-unsigned int idx = 0;
-unsigned int incr = (int) (F / SR * LSIZE);
-unsigned int first = 1;
-FILE *f;
-
-typedef struct {
-    float idx;
-    float incr;
-    const float *table;
-    synth_time_t note_on;
-} tableData;
-
 envelope_s ableton_default = {
     .attack_t = 0.005,
     .decay_t = 0.625,
@@ -30,6 +18,7 @@ envelope_s ableton_default = {
     .release_t = 0.5,
     .type = ENVELOPE_TYPE_EXPONENTIAL
 };
+osc_s *oscillator;
 
 static int callback(const void *input, void *output,
                     unsigned long frameCount,
@@ -39,28 +28,11 @@ static int callback(const void *input, void *output,
 {
     int i;
     float *out = (float*)output;
-    tableData *d = (tableData*)userData;
-    synth_time_t now;
-    
-    if (first) {
-        time_now(&d->note_on);
-        first = 0;
-    }
+    osc_s *o = (osc_s*)userData;
     
     for(i = 0; i < frameCount; ++i)
     {
-        float samp = d->table[(int)d->idx];
-        
-        /* wrap around table */
-        d->idx += d->incr;
-        if (d->idx >= LSIZE) {
-            d->idx = 0;
-        }
-
-        time_now(&now);
-        double gain = envelope_gain(ableton_default, elapsed_time(d->note_on, now));
-
-        out[i] = samp * gain;
+        *out++ = osc_tick(o);
     }
 
     return paContinue;
@@ -69,17 +41,14 @@ static int callback(const void *input, void *output,
 int main(int argc, const char * argv[]) {
     PaStream *stream;
     PaError err;
-    tableData data;
+    osc_s *oscillator;
     
-    /* Setup our frequency and table information */
-    data.incr = F / SR * LSIZE;
-    data.idx  = 0;
-    data.table = &sqtable[0];
+    oscillator = osc_new(440.0f, OSC_TYPE_NOISE);
     
     err = Pa_Initialize();
     CHK(err);
 
-    err = Pa_OpenDefaultStream(&stream, 0, 1, paFloat32, SR, 512, callback, &data);
+    err = Pa_OpenDefaultStream(&stream, 0, 1, paFloat32, SR, 512, callback, (void*)oscillator);
     CHK(err);
     
     err = Pa_StartStream(stream);
@@ -94,6 +63,8 @@ int main(int argc, const char * argv[]) {
     CHK(err);
     
     Pa_Terminate();
+    
+    osc_destroy(oscillator);
     
     return 0;
 }
