@@ -22,13 +22,23 @@
 
 unsigned int idx = 0;
 unsigned int incr = (int) (F / SR * LSIZE);
+unsigned int first = 1;
 
 typedef struct {
     float idx;
     float incr;
     const float *table;
     int numTicks;
+    synth_time_t note_on;
 } tableData;
+
+envelope_s ableton_default = {
+    .attack_t = 0.005,
+    .decay_t = 0.625,
+    .sustain_g = 0.5,
+    .release_t = 0.5,
+    .type = ENVELOPE_TYPE_EXPONENTIAL
+};
 
 static int callback(const void *input, void *output,
                     unsigned long frameCount,
@@ -40,13 +50,18 @@ static int callback(const void *input, void *output,
     float *out = (float*)output;
     tableData *d = (tableData*)userData;
     
+    if (first) {
+        time_now(&d->note_on);
+        first = 0;
+    }
+    
     for(i = 0; i < frameCount; ++i)
     {
         float samp = d->table[(int)d->idx];
-        //float gain = envelope_generator(d->numTicks);
+        float gain = envelope_gain(ableton_default, d->note_on);
 
-        out[i] = d->table[(int)d->idx];
-        //out[i] = samp * gain;
+        //out[i] = d->table[(int)d->idx];
+        out[i] = samp * gain;
 
         /* wrap around table */
         d->idx += d->incr;
@@ -64,11 +79,12 @@ int main(int argc, const char * argv[]) {
     PaStream *stream;
     PaError err;
     tableData data;
+    int i;
     
     /* Setup our frequency and table information */
     data.incr = F / SR * LSIZE;
     data.idx  = 0;
-    data.table = &sqtable[0];
+    data.table = &sintable[0];
     data.numTicks = 0;
     
     err = Pa_Initialize();
@@ -80,7 +96,7 @@ int main(int argc, const char * argv[]) {
     err = Pa_StartStream(stream);
     CHK(err);
     
-    Pa_Sleep(1000);
+    Pa_Sleep(5000);
     
     err = Pa_StopStream(stream);
     CHK(err);

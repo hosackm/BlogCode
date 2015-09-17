@@ -64,10 +64,10 @@ double envelope_gain(envelope_s env, synth_time_t birth)
     }
     
     /* Clamp values between -1.0 and 1.0 */
-    g = g > 1.0 ? 1.0 : g;
-    g = g < -1.0 ? -1.0 : g;
+//    g = g > 1.0 ? 1.0 : g;
+//    g = g < -1.0 ? -1.0 : g;
     /* Return the gain from the helper function */
-    return g > 0.0;
+    return g;
 }
 
 static double envelope_gain_lin(envelope_s env, synth_time_t birth)
@@ -191,36 +191,3 @@ static double exp_func(double sample)
     sample = sample < -1.0 ? -1.0 : sample;
     return (log10(sample + 1.0) / (1.0 + sample)) * (2.0 / log10(2.0));
 }
-
-//float envelope_generator(const unsigned int idx)
-//{
-//    /* 
-//     * Linear Attack - 250ms
-//     * Linear Decay  - 250ms
-//     * Flat Sustain  - @ 50% 250ms
-//     * Release       - @ 0%  250ms
-//     *
-//     *   / \
-//     *  /A D\______
-//     * /      S   R\
-//     * ----------------(1 sec)
-//     */
-//    const unsigned int width = SR / 4.0;
-//
-//    /* Attack */
-//    if (idx <= width) {
-//        return idx / (float)width;
-//    }
-//    /* Decay */
-//    else if (idx <= 2.0 * width){
-//        return 1.0 - (idx / (float)(2.0 * width)) / 2.0;
-//    }
-//    /* Sustain */
-//    else if (idx <= 3.0 * width){
-//        return 0.5f;
-//    }
-//    /* Release */
-//    else {
-//        return 0.0f;
-//    }
-//}

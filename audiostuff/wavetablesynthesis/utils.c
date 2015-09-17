@@ -8,16 +8,6 @@
 
 #include "utils.h"
 
-//double elapsed_time(time_t start, time_t end)
-//{
-//    return (double)(end - start) / CLOCKS_PER_SEC;//difftime(end, start);
-//}
-//
-//double elapsed_time_ms(time_t start, time_t end)
-//{
-//    return 1000.0 * elapsed_time(start, end); //difftime(end, start);
-//}
-
 void time_now(synth_time_t *t)
 {
     gettimeofday(t, NULL);
