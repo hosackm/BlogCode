@@ -105,11 +105,17 @@ double synth_tick(synth s)
             double osc = osc_tick(s->keyboard[i].oscillator);
             /* Get gain from velocity of MIDI event */
             double velgain = vtog(s->keyboard[i].velocity);
+            /* Elapsed time since this key was pressed */
+            double age = elapsed_time(s->keyboard[i].pressed, now);
             /* Get envelope gain */
-            double envgain = envelope_gain(*s->envelope, elapsed_time(s->keyboard[i].pressed, now));
+            double envgain = envelope_gain(*s->envelope, age);
 
             /* Apply velocity and envelope to raw sample */
             sample += osc * velgain * envgain;
+            
+            /* If the note should be dead, destroy it */
+            if (envelope_get_state(*s->envelope, age) == ENVELOPE_STATE_DEAD)
+                synth_delete_note(s, i);
 
             /* Increment the number of keys being played so we can scale it to between -1 and 1 */
             num_keys++;
@@ -141,6 +147,7 @@ int synth_delete_note(synth s, unsigned int note)
     if (!s || note >= NUM_MIDI_NOTES)
         return -1;
 
+    /* Set velocity to 0, then it won't be considered pressed */
     s->keyboard[note].velocity = 0;
     return 0;
 }
