@@ -9,13 +9,7 @@ struct tree_s {
     struct tree_s *left, *right;
 };
 
-btree btree_create()
-{
-    /* Set to NULL so that insert will
-     * intialize the root */
-    return NULL;
-}
-
+/* Recursively deallocate all nodes within this tree */
 void btree_destroy(btree t)
 {
     /* Recursively call btree_destroy on the left and
@@ -29,6 +23,7 @@ void btree_destroy(btree t)
     }
 }
 
+/* Recursively search for correct place and add a value to the tree */
 int btree_insert(btree *t, const elem val)
 {
     /* Create the node if it doesn't exist yet */
@@ -56,6 +51,7 @@ int btree_insert(btree *t, const elem val)
     return -1;
 }
 
+/* Find an element in the tree */
 int btree_find(btree t, const elem val)
 {
     /* If we've reached a NULL leaf we've exhausted the tree */

@@ -5,16 +5,6 @@ extern "C" {
 typedef int elem;
 typedef struct tree_s *btree;
 
-/* Create a tree
- *
- * Returns
- * =======
- *  NULL - please don't try to dereference this
- *         it only exists to conform with the usual
- *         function signature of other data structures
- */
-btree btree_create();
-
 /* Destroy a tree */
 void btree_destroy(btree t);
 

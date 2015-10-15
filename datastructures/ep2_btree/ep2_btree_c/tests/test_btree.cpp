@@ -7,7 +7,8 @@ class btreeFixture : public ::testing::Test
 {
 public:
     void SetUp(){
-        bt = btree_create();
+        //bt = btree_create();
+        bt = NULL;
     }
     void TearDown(){
         btree_destroy(bt);
