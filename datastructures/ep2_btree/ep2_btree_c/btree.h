@@ -3,7 +3,7 @@ extern "C" {
 #endif
 
 typedef int elem;
-typedef struct node_s *btree;
+typedef struct tree_s *btree;
 
 /* Create a tree
  *

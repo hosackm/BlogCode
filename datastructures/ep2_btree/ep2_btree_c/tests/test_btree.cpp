@@ -69,6 +69,34 @@ TEST_F(btreeFixture, InsertManyAndFindThem)
     }
 }
 
+TEST_F(btreeFixture, findReturnsTrue)
+{
+    btree_insert(&bt, 1);
+    btree_insert(&bt, 42);
+    btree_insert(&bt, 1337);
+    btree_insert(&bt, 99);
+    btree_insert(&bt, 7);
+    EXPECT_EQ(1, btree_find(bt, 1));
+    EXPECT_EQ(1, btree_find(bt, 42));
+    EXPECT_EQ(1, btree_find(bt, 1337));
+    EXPECT_EQ(1, btree_find(bt, 99));
+    EXPECT_EQ(1, btree_find(bt, 7));
+}
+
+TEST_F(btreeFixture, findReturnsFalse)
+{
+    btree_insert(&bt, 1);
+    btree_insert(&bt, 42);
+    btree_insert(&bt, 1337);
+    btree_insert(&bt, 99);
+    btree_insert(&bt, 7);
+    EXPECT_EQ(0, btree_find(bt, 0));
+    EXPECT_EQ(0, btree_find(bt, 43));
+    EXPECT_EQ(0, btree_find(bt, 1335));
+    EXPECT_EQ(0, btree_find(bt, 100));
+    EXPECT_EQ(0, btree_find(bt, 5));
+}
+
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);

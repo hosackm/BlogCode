@@ -1,12 +1,12 @@
 #include <stdlib.h>
 #include "btree.h"
 
-struct node_s
-{
+/* Node Data Type */
+struct tree_s {
     /* the data */
     elem val;
     /* left and right subtrees */
-    struct node_s *left, *right;
+    struct tree_s *left, *right;
 };
 
 btree btree_create()
@@ -32,8 +32,8 @@ void btree_destroy(btree t)
 int btree_insert(btree *t, const elem val)
 {
     /* Create the node if it doesn't exist yet */
-    if (*t == NULL) {
-        *t = malloc(sizeof(struct node_s));
+    if (!*t) {
+        *t = malloc(sizeof(struct tree_s));
         (*t)->left = NULL;
         (*t)->right = NULL;
         (*t)->val = val;
