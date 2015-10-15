@@ -15,8 +15,9 @@
 #include "tables.h"
 #include "types.h"
 #include "oscillator.h"
+#include "io.h"
 
-typedef struct synth_s *synth;
+typedef struct synth_s* synth;
 
 synth synth_new();
 void synth_destroy(synth s);
