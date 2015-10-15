@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct midi_note_s {
+struct note_s {
     unsigned int midi_num;
     unsigned int velocity;
     osc_s *oscillator;
@@ -30,7 +30,7 @@ struct synth_s {
     double noise_gain;
     
     /* Midi Notes */
-    struct midi_note_s keyboard[NUM_MIDI_NOTES];
+    struct note_s keyboard[NUM_MIDI_NOTES];
 };
 
 synth synth_new()
