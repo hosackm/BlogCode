@@ -3,6 +3,9 @@ xcuserdata
 *.xcodeproj
 .DS_Store
 
+#make
+Makefile
+
 #Python
 venv
 *.pyc
