@@ -4,23 +4,25 @@
 #include <stdio.h>
 
 struct vertex_s {
-    element elem;
-    int visited;
-    struct edge_s *edges;
-    struct vertex_s *next;
+    element elem; /* the value being stored */
+    int visited; /* used when searching graphs */
+    struct edge_s *edges; /* linked list of edges */
+    struct vertex_s *next; /* reference to next vertex in list */
 };
 
 struct edge_s {
-    struct vertex_s *to;
-    struct edge_s *next;
+    struct vertex_s *to; /* reference to other vertex */
+    struct edge_s *next; /* next edge in linked list */
 };
 
 struct graph_s {
-    struct vertex_s *vertices;
+    struct vertex_s *vertices; /* linked list of vertices */
 };
 
+/* Helper function */
 static int _reachable(vertex start, element dst);
 
+/* Return a graph */
 graph graph_create()
 {
     struct graph_s *g = malloc(sizeof(struct graph_s));
@@ -29,6 +31,7 @@ graph graph_create()
     return g;
 }
 
+/* deallocate memory for this graph */
 void graph_destroy(graph g)
 {
     vertex v = g->vertices;
@@ -56,6 +59,7 @@ void graph_destroy(graph g)
     }
 }
 
+/* Add a vertex to a graph */
 void graph_add_vertex(graph g, element value)
 {
     /* Operate on graphs vertices list */
@@ -130,6 +134,7 @@ void graph_add_edge(graph g, element src, element dst)
     }
 }
 
+/* Return 1 if there is a path from src to dst otherwise return 0 */
 int graph_reachable(graph g, element src, element dst)
 {
     vertex vert, start = NULL;
@@ -148,6 +153,7 @@ int graph_reachable(graph g, element src, element dst)
     return _reachable(start, dst);
 }
 
+/* Helper function called by graph_reachable() */
 static int _reachable(vertex start, element dst)
 {
     edge e;
@@ -169,9 +175,9 @@ static int _reachable(vertex start, element dst)
     return 0;
 }
 
-/*
- *  Helper Printing Functions
- */
+/********************************************************
+ *               Helper Printing Functions              *
+ ********************************************************/
 void graph_list_vertices(graph g)
 {
     int i;
