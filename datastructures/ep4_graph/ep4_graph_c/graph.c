@@ -162,7 +162,8 @@ static int _reachable(vertex start, element dst)
 
     for(e = start->edges; e != NULL; e = e->next)
     {
-        return _reachable(e->to, dst);
+        if(_reachable(e->to, dst))
+            return 1;
     }
 
     return 0;
