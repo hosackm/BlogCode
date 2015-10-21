@@ -3,20 +3,23 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+typedef struct vertex_s *vertex;
+typedef struct edge_s *edge;
+
 struct vertex_s {
     element elem;
     int visited;
-    struct edge_s *edges;
-    struct vertex_s *next;
+    edge edges;
+    vertex next;
 };
 
 struct edge_s {
-    struct vertex_s *to;
-    struct edge_s *next;
+    vertex to;
+    edge next;
 };
 
 struct graph_s {
-    struct vertex_s *vertices;
+    vertex vertices;
 };
 
 static int _reachable(vertex start, element dst);

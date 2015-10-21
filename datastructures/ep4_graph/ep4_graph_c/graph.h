@@ -7,8 +7,6 @@ extern "C" {
 
 typedef int element;
 typedef struct graph_s *graph;
-typedef struct vertex_s *vertex;
-typedef struct edge_s *edge;
 
 graph graph_create();
 void graph_destroy(graph g);
