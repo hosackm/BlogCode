@@ -22,8 +22,10 @@ struct graph_s {
     vertex vertices;
 };
 
+/* Helper function */
 static int _reachable(vertex start, element dst);
 
+/* Return a graph */
 graph graph_create()
 {
     struct graph_s *g = malloc(sizeof(struct graph_s));
@@ -32,6 +34,7 @@ graph graph_create()
     return g;
 }
 
+/* deallocate memory for this graph */
 void graph_destroy(graph g)
 {
     vertex v = g->vertices;
@@ -59,6 +62,7 @@ void graph_destroy(graph g)
     }
 }
 
+/* Add a vertex to a graph */
 void graph_add_vertex(graph g, element value)
 {
     /* Operate on graphs vertices list */
@@ -133,6 +137,7 @@ void graph_add_edge(graph g, element src, element dst)
     }
 }
 
+/* Return 1 if there is a path from src to dst otherwise return 0 */
 int graph_reachable(graph g, element src, element dst)
 {
     vertex vert, start = NULL;
@@ -151,6 +156,7 @@ int graph_reachable(graph g, element src, element dst)
     return _reachable(start, dst);
 }
 
+/* Helper function called by graph_reachable() */
 static int _reachable(vertex start, element dst)
 {
     edge e;
@@ -165,15 +171,16 @@ static int _reachable(vertex start, element dst)
 
     for(e = start->edges; e != NULL; e = e->next)
     {
-        return _reachable(e->to, dst);
+        if(_reachable(e->to, dst))
+            return 1;
     }
 
     return 0;
 }
 
-/*
- *  Helper Printing Functions
- */
+/********************************************************
+ *               Helper Printing Functions              *
+ ********************************************************/
 void graph_list_vertices(graph g)
 {
     int i;
